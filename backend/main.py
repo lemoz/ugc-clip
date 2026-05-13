@@ -31,6 +31,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    from backend.api.routes_auth import router as auth_router
+    from backend.api.routes_personas import router as personas_router
+    from backend.api.routes_projects import router as projects_router
+
+    app.include_router(auth_router)
+    app.include_router(personas_router)
+    app.include_router(projects_router)
+
     @app.get("/health")
     async def health():
         return {"status": "ok", "version": "0.1.0"}
