@@ -22,6 +22,12 @@ export function NavBar() {
       <div className="flex gap-4 items-center text-sm">
         {user ? (
           <>
+            <Link href="/upload" className="hover:text-blue-400 transition-colors">
+              Upload
+            </Link>
+            <Link href="/brief" className="hover:text-blue-400 transition-colors">
+              New Brief
+            </Link>
             <Link href="/projects" className="hover:text-blue-400 transition-colors">
               Projects
             </Link>
