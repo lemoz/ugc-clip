@@ -1,0 +1,18 @@
+slug: testimonial
+name: Testimonial
+category: social_proof
+description: Personal story or testimonial about how something changed your life
+tags: [testimonial, story, transformation, personal]
+tone: emotional
+target_platform: tiktok
+target_duration: 45
+script_structure:
+  hook: Start with a relatable pain point or "before" moment
+  body: Share the transformation journey and the solution
+  cta: Encourage others to take the same step
+narrative_requirements:
+  - Must establish emotional connection in first 5 seconds
+  - Story arc must be clear (before → solution → after)
+  - Must feel genuine and unscripted
+  - CTA must be empowering, not pushy
+  - No exaggerated claims

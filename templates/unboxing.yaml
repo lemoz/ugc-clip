@@ -1,0 +1,17 @@
+slug: unboxing
+name: Unboxing
+category: product
+description: First impression unboxing of a new product
+tags: [unboxing, first impressions, product, asmr]
+tone: excited
+target_platform: tiktok
+target_duration: 30
+script_structure:
+  hook: Show the packaging and build anticipation
+  body: Unbox, show each item, share first reactions
+  cta: Tell viewers where to get it
+narrative_requirements:
+  - Must show product within first 5 seconds
+  - Must have genuine reaction (excitement, surprise, disappointment)
+  - At least one close-up of the product
+  - CTA in last 3 seconds

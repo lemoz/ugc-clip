@@ -1,0 +1,19 @@
+slug: product-review
+name: Product Review
+category: review
+description: Honest review of a product or service you've used
+tags: [review, product, honest, recommendation]
+tone: casual
+target_platform: tiktok
+target_duration: 30
+script_structure:
+  hook: Grab attention with a bold claim or result in first 3 seconds
+  body: Share what the product is, your experience, 1-2 key benefits
+  cta: Clear call to action (link in bio, try it yourself, swipe up)
+narrative_requirements:
+  - Hook must start within first 3 seconds
+  - Must mention product name within first 10 seconds
+  - Must include at least one specific result or experience
+  - CTA must be in last 5 seconds
+  - Must feel authentic and personal, not scripted
+  - No medical claims unless you are a licensed professional
