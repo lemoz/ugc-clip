@@ -1,0 +1,18 @@
+slug: day-in-life
+name: Day in the Life
+category: lifestyle
+description: A day in your life featuring a product or service naturally integrated
+tags: [lifestyle, daily, routine, authentic]
+tone: relaxed
+target_platform: tiktok
+target_duration: 60
+script_structure:
+  hook: Start your morning routine or a specific moment
+  body: Show your day naturally, featuring the product where it fits
+  cta: Invite viewers to try it as part of their routine
+narrative_requirements:
+  - Must feel like documentary, not advertisement
+  - Product must appear naturally, not forced
+  - At least 3 different scenes/moments
+  - Background music should match the vibe
+  - Captions must be readable
