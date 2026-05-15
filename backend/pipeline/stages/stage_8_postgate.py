@@ -18,8 +18,9 @@ class PostGateStage(PipelineStage):
         errors: list[str] = []
         warnings: list[str] = []
 
+        stage_outputs = ctx.data.get("stage_outputs", {})
         prev_output = ctx.data.get("previous_stage_output", {})
-        segments = prev_output.get("segments", [])
+        segments = prev_output.get("segments") or stage_outputs.get("5", {}).get("segments", [])
 
         gates["segment_count"] = len(
             [s for s in segments if s.get("status") == "complete"]
@@ -38,7 +39,11 @@ class PostGateStage(PipelineStage):
             errors.append("No completed segments")
             gates["overall_realism"] = "Failed"
 
-        output = {"gates": gates, "warnings": warnings}
+        output = {
+            "gates": gates,
+            "warnings": warnings,
+            "output_video": stage_outputs.get("7", {}).get("output_video", ""),
+        }
 
         if errors:
             return StageResult.failure(8, errors, output)

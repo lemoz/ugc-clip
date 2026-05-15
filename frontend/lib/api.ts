@@ -74,6 +74,72 @@ class ApiClient {
       { method: "POST", body: JSON.stringify({ persona_id, name }) }
     );
   }
+
+  async createBrief(input: {
+    template_slug: string;
+    title: string;
+    product_name?: string;
+    call_to_action?: string;
+    tone?: string;
+    target_duration?: number;
+  }) {
+    return this.request<{ id: string; template_slug: string; title: string }>(
+      "/api/v1/briefs",
+      { method: "POST", body: JSON.stringify(input) }
+    );
+  }
+
+  async createProjectFromBrief(input: {
+    persona_id: string;
+    brief_id: string;
+    source_clip_id?: string;
+    name: string;
+  }) {
+    return this.request<{ id: string; name: string; status: string }>(
+      "/api/v1/projects",
+      { method: "POST", body: JSON.stringify(input) }
+    );
+  }
+
+  async uploadVideo(persona_id: string, file: File) {
+    const form = new FormData();
+    form.append("persona_id", persona_id);
+    form.append("file", file);
+    return this.upload<{ id: string; file_path: string; media_type: string }>(
+      "/api/v1/uploads/video",
+      form
+    );
+  }
+
+  async uploadVoice(persona_id: string, file: File, prompt_text?: string) {
+    const form = new FormData();
+    form.append("persona_id", persona_id);
+    form.append("file", file);
+    if (prompt_text) form.append("prompt_text", prompt_text);
+    return this.upload<{ id: string; prompt_audio_path: string }>(
+      "/api/v1/uploads/voice",
+      form
+    );
+  }
+
+  async runProject(project_id: string, template_slug = "product-review") {
+    return this.request<{ project_id: string; status: string; stage: number }>(
+      `/api/v1/projects/${project_id}/run`,
+      { method: "POST", body: JSON.stringify({ template_slug }) }
+    );
+  }
+
+  private async upload<T>(path: string, body: FormData): Promise<T> {
+    const headers: Record<string, string> = {};
+    const tok = this.token();
+    if (tok) headers["Authorization"] = `Bearer ${tok}`;
+    const res = await fetch(`${this.baseUrl}${path}`, { method: "POST", body, headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    return res.json();
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE);

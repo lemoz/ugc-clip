@@ -16,7 +16,8 @@ class PreGateStage(PipelineStage):
         warnings: list[str] = []
         gates_passed: dict[str, bool] = {}
 
-        script = ctx.data.get("previous_stage_output", {}).get("script", {})
+        previous = ctx.data.get("previous_stage_output", {})
+        script = previous.get("script", {})
         script_text = script.get("text", "")
         hook = script.get("hook", "")
         cta = script.get("call_to_action", "")
@@ -77,13 +78,15 @@ class PreGateStage(PipelineStage):
         return True
 
     def _check_source_quality(self, ctx: StageContext) -> bool:
-        clip_id = ctx.data.get("previous_stage_output", {}).get("source_clip_id")
+        previous = ctx.data.get("previous_stage_output", {})
+        clip_id = previous.get("source_clip_id") or ctx.data.get("source_clip_id")
         if not clip_id:
             return False
         return True
 
     def _check_voice_quality(self, ctx: StageContext) -> bool:
-        voice_data = ctx.data.get("previous_stage_output", {}).get("voice_profile", {})
+        previous = ctx.data.get("previous_stage_output", {})
+        voice_data = previous.get("voice_profile") or ctx.data.get("voice_profile", {})
         duration = voice_data.get("sample_duration", 0)
         if duration < 5:
             return False

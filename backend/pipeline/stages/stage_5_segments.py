@@ -29,15 +29,17 @@ class SegmentGenerationStage(PipelineStage):
         output: dict = {"segments": []}
         errors: list[str] = []
 
+        stage_outputs = ctx.data.get("stage_outputs", {})
+        artifact_output = stage_outputs.get("2", {})
         prev_output = ctx.data.get("previous_stage_output", {})
-        script = prev_output.get("script", {})
-        shot_plan = prev_output.get("shot_plan", {})
+        script = prev_output.get("script") or artifact_output.get("script", {})
+        shot_plan = prev_output.get("shot_plan") or artifact_output.get("shot_plan", {})
         segments_config = shot_plan.get("segments", [])
 
-        source_clip_id = prev_output.get("source_clip_id", "")
+        source_clip_id = prev_output.get("source_clip_id") or ctx.data.get("source_clip_id", "")
         clip_path = self._get_source_clip_path(ctx, source_clip_id)
 
-        voice_profile = prev_output.get("voice_profile", {})
+        voice_profile = prev_output.get("voice_profile") or ctx.data.get("voice_profile", {})
 
         settings = load_settings()
         data_dir = Path(settings.data_dir)
@@ -59,7 +61,7 @@ class SegmentGenerationStage(PipelineStage):
                 )
 
                 tts_result = await self._tts.generate(
-                    script_text=script.get("text", ""),
+                    script_text=seg_conf.get("script_text") or script.get("text", ""),
                     voice_prompt_audio=voice_profile.get("prompt_audio_path", clip_path),
                     voice_prompt_text=voice_profile.get("prompt_text"),
                     output_dir=str(seg_output_dir),
@@ -94,6 +96,9 @@ class SegmentGenerationStage(PipelineStage):
         return StageResult.success(5, output)
 
     def _get_source_clip_path(self, ctx: StageContext, clip_id: str) -> str:
+        source_clip = ctx.data.get("source_clip", {})
+        if source_clip.get("file_path"):
+            return source_clip["file_path"]
         settings = load_settings()
         data_dir = Path(settings.data_dir)
         default = str(data_dir / "uploads" / "video" / "default.mp4")

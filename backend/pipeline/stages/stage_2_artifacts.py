@@ -18,8 +18,9 @@ class ArtifactsStage(PipelineStage):
         }
         errors: list[str] = []
 
-        brief_data = ctx.data.get("brief", {})
-        template_def = ctx.data.get("previous_stage_output", {}).get("template", {})
+        previous = ctx.data.get("previous_stage_output", {})
+        brief_data = previous.get("brief") or ctx.data.get("brief", {})
+        template_def = previous.get("template", {})
 
         script = await self._generate_script(brief_data, template_def)
         output["script"] = script
@@ -32,6 +33,8 @@ class ArtifactsStage(PipelineStage):
 
         voice_data = ctx.data.get("voice_profile", {})
         output["voice_profile"] = voice_data
+        if ctx.data.get("source_clip_id"):
+            output["source_clip_id"] = ctx.data["source_clip_id"]
 
         if errors:
             return StageResult.failure(2, errors, output)
@@ -44,7 +47,7 @@ class ArtifactsStage(PipelineStage):
     ) -> dict:
         product_name = brief_data.get("product_name", "[product]")
         tone = brief_data.get("tone", "casual")
-        cta = brief_data.get("call_to_action", "Check the link in my bio")
+        cta = brief_data.get("call_to_action") or "Check the link in my bio"
         topic = brief_data.get("topic", "")
 
         hook = f"I've been using {product_name} for the past month and I have to be honest..."

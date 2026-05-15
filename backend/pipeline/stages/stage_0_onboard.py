@@ -29,6 +29,12 @@ class OnboardStage(PipelineStage):
                     ctx.session, persona.id, clip_path, ctx.data.get("source_url")
                 )
                 output["source_clip_id"] = clip.id
+                output["source_clip"] = {
+                    "id": clip.id,
+                    "file_path": clip.file_path,
+                    "source_url": clip.source_url,
+                    "source_type": clip.source_type,
+                }
             except Exception as e:
                 errors.append(f"Clip creation failed: {e}")
 
@@ -39,6 +45,13 @@ class OnboardStage(PipelineStage):
                     ctx.session, persona.id, voice_path, ctx.data.get("voice_text")
                 )
                 output["voice_profile_id"] = profile.id
+                output["voice_profile"] = {
+                    "id": profile.id,
+                    "prompt_audio_path": profile.prompt_audio_path,
+                    "prompt_text": profile.prompt_text,
+                    "sample_duration": profile.sample_duration,
+                    "quality_score": profile.quality_score,
+                }
             except Exception as e:
                 errors.append(f"Voice profile creation failed: {e}")
 
@@ -49,7 +62,7 @@ class OnboardStage(PipelineStage):
 
     async def _ensure_persona(self, session: AsyncSession, ctx: StageContext) -> Persona:
         result = await session.execute(
-            select(Persona).where(Persona.id == ctx.persona_id)
+            select(Persona).where(Persona.id == ctx.persona_id, Persona.user_id == ctx.user_id)
         )
         persona = result.scalar_one_or_none()
         if persona:
@@ -73,6 +86,16 @@ class OnboardStage(PipelineStage):
         source_url: str | None = None,
     ) -> SourceClip:
         source_type = "url_import" if source_url else "upload"
+        existing = await session.execute(
+            select(SourceClip).where(
+                SourceClip.persona_id == persona_id,
+                SourceClip.file_path == file_path,
+            )
+        )
+        existing_clip = existing.scalar_one_or_none()
+        if existing_clip:
+            return existing_clip
+
         clip = SourceClip(
             persona_id=persona_id,
             file_path=file_path,
@@ -95,6 +118,17 @@ class OnboardStage(PipelineStage):
             duration = float(self._get_audio_duration(audio_path))
         except Exception:
             pass
+
+        existing = await session.execute(
+            select(VoiceProfile).where(VoiceProfile.persona_id == persona_id)
+        )
+        profile = existing.scalar_one_or_none()
+        if profile:
+            profile.prompt_audio_path = audio_path
+            profile.prompt_text = prompt_text
+            profile.sample_duration = duration
+            await session.commit()
+            return profile
 
         profile = VoiceProfile(
             persona_id=persona_id,

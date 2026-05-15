@@ -8,6 +8,7 @@ from backend.models.persona import (
     SourceClip,
     VoiceProfile,
 )
+from backend.models.pipeline_artifact import PipelineArtifact
 from backend.models.project import Brief, Project, Segment, Template
 from backend.models.user import User
 
@@ -27,4 +28,5 @@ __all__ = [
     "Asset",
     "Job",
     "EvaluationResult",
+    "PipelineArtifact",
 ]

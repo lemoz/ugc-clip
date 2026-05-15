@@ -9,6 +9,7 @@ import backend.models.asset  # noqa: F401
 import backend.models.evaluation  # noqa: F401
 import backend.models.job  # noqa: F401
 import backend.models.persona  # noqa: F401
+import backend.models.pipeline_artifact  # noqa: F401
 import backend.models.project  # noqa: F401
 
 # Import all models so Alembic can detect them

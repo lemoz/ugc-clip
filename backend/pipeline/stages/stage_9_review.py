@@ -23,13 +23,16 @@ class ReviewStage(PipelineStage):
         }
         errors: list[str] = []
 
+        stage_outputs = ctx.data.get("stage_outputs", {})
         prev_output = ctx.data.get("previous_stage_output", {})
-        video_path = prev_output.get("output_video", "")
+        video_path = prev_output.get("output_video") or stage_outputs.get("7", {}).get(
+            "output_video", ""
+        )
 
         if not video_path:
             errors.append("No assembled video available for review")
 
-        gates = ctx.data.get("previous_stage_output", {}).get("gates", {})
+        gates = prev_output.get("gates") or stage_outputs.get("8", {}).get("gates", {})
         output["qc_report"] = {
             "lip_sync_quality": gates.get("lip_sync_quality", "Unknown"),
             "voice_match": gates.get("voice_match", "Unknown"),
@@ -41,6 +44,7 @@ class ReviewStage(PipelineStage):
             "segment_count": gates.get("segment_count", 0),
         }
         output["video_path"] = video_path
+        output["download_url"] = f"/api/v1/projects/{ctx.project_id}/download"
 
         if errors:
             return StageResult.failure(9, errors, output)

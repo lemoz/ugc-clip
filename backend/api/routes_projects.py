@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.auth import get_current_user
 from backend.models.base import get_session
-from backend.models.persona import Persona
-from backend.models.project import Project
+from backend.models.persona import Persona, SourceClip
+from backend.models.project import Brief, Project
 from backend.models.user import User
 
 router = APIRouter(prefix="/api/v1/projects")
@@ -19,14 +19,17 @@ router = APIRouter(prefix="/api/v1/projects")
 class ProjectCreate(BaseModel):
     persona_id: str
     brief_id: str | None = None
+    source_clip_id: str | None = None
     name: str = "Untitled"
     platform: str = "tiktok"
+    source_clip_id: str | None = None
 
 
 class ProjectResponse(BaseModel):
     id: str
     persona_id: str
     brief_id: str | None = None
+    source_clip_id: str | None = None
     name: str
     status: str
     stage: int
@@ -61,10 +64,28 @@ async def create_project(
     if not persona_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Persona not found")
 
+    if body.brief_id:
+        brief_result = await session.execute(
+            select(Brief).where(Brief.id == body.brief_id, Brief.user_id == current_user.id)
+        )
+        if not brief_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Brief not found")
+
+    if body.source_clip_id:
+        clip_result = await session.execute(
+            select(SourceClip).where(
+                SourceClip.id == body.source_clip_id,
+                SourceClip.persona_id == body.persona_id,
+            )
+        )
+        if not clip_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Source clip not found")
+
     project = Project(
         user_id=current_user.id,
         persona_id=body.persona_id,
         brief_id=body.brief_id,
+        source_clip_id=body.source_clip_id,
         name=body.name,
         platform=body.platform,
     )

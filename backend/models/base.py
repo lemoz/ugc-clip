@@ -39,7 +39,15 @@ async def get_session() -> AsyncSession:
 
 
 async def init_db() -> None:
-    from backend.models import asset, evaluation, job, persona, project, user  # noqa: F401
+    from backend.models import (  # noqa: F401
+        asset,
+        evaluation,
+        job,
+        persona,
+        pipeline_artifact,
+        project,
+        user,
+    )
 
     engine = _get_engine()
     async with engine.begin() as conn:

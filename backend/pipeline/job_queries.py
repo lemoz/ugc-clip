@@ -64,7 +64,7 @@ async def claim_next_job(
         return None
 
     result = await session.execute(
-        select(JobModel)
+        select(JobModel.id)
         .where(
             JobModel.status == "queued",
             JobModel.job_type.in_(job_types),
@@ -73,16 +73,25 @@ async def claim_next_job(
         .order_by(JobModel.created_at.asc())
         .limit(1)
     )
-    job = result.scalar_one_or_none()
-    if job is None:
+    job_id = result.scalar_one_or_none()
+    if job_id is None:
         return None
 
-    job.status = "running"
-    job.progress = None
-    job.attempts += 1
-    job.started_at = datetime.now(UTC)
+    claim = await session.execute(
+        update(JobModel)
+        .where(JobModel.id == job_id, JobModel.status == "queued")
+        .values(
+            status="running",
+            progress=None,
+            attempts=JobModel.attempts + 1,
+            started_at=datetime.now(UTC),
+        )
+    )
     await session.commit()
-    return job
+    if claim.rowcount != 1:
+        return None
+
+    return await get_job(session, job_id)
 
 
 async def update_job_progress(session: AsyncSession, job_id: str, progress: str) -> None:

@@ -10,6 +10,10 @@ export default async function ProjectDetailPage({
       <h1 className="text-2xl font-bold mb-2">Project {id}</h1>
       <p className="text-gray-400 mb-8">Pipeline status and video preview</p>
 
+      <p className="mb-8 text-sm text-gray-500">
+        Backend generation is available at <code>POST /api/v1/projects/{id}/run</code>.
+      </p>
+
       <div className="space-y-4">
         {[
           { stage: 0, name: "Onboarding & Verification", done: true },

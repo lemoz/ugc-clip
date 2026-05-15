@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
     secret_key: str = "change-me"
+    auto_create_tables: bool = True
     database_url: str = "sqlite+aiosqlite:///data/ugc_clip.db"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440

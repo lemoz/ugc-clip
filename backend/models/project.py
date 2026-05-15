@@ -111,6 +111,9 @@ class Project(Base):
     evaluations: Mapped[list[EvaluationResult]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
+    pipeline_artifacts: Mapped[list[PipelineArtifact]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class Segment(Base):
