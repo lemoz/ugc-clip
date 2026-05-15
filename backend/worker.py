@@ -83,10 +83,21 @@ class JobWorker:
                     continue
 
                 self._running_counts[jt] = self._running_counts.get(jt, 0) + 1
-                asyncio.create_task(self._process_job(session, job.id, jt))
+                asyncio.create_task(self._process_job(job.id, jt))
 
-    async def _process_job(self, session: AsyncSession, job_id: str, job_type: str) -> None:
+    async def _process_job(self, job_id: str, job_type: str) -> None:
         handler = self._handlers.get(job_type)
+        factory = _get_session_factory()
+        async with factory() as session:
+            await self._process_job_with_session(session, job_id, job_type, handler)
+
+    async def _process_job_with_session(
+        self,
+        session: AsyncSession,
+        job_id: str,
+        job_type: str,
+        handler: JobHandler | None,
+    ) -> None:
         try:
             if handler:
                 result = await handler(session, job_id, None, None)

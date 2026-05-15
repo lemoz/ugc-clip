@@ -6,6 +6,9 @@ import { apiClient } from "@/lib/api";
 
 export default function UploadPage() {
   const [name, setName] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [voiceFile, setVoiceFile] = useState<File | null>(null);
+  const [voiceText, setVoiceText] = useState("This is my voice sample.");
   const [error, setError] = useState("");
   const [personas, setPersonas] = useState<{ id: string; name: string }[]>([]);
   const router = useRouter();
@@ -19,7 +22,9 @@ export default function UploadPage() {
     setError("");
     try {
       const persona = await apiClient.createPersona(name);
-      router.push(`/personas/${persona.id}`);
+      if (videoFile) await apiClient.uploadVideo(persona.id, videoFile);
+      if (voiceFile) await apiClient.uploadVoice(persona.id, voiceFile, voiceText);
+      router.push(`/brief?persona_id=${persona.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create persona");
     }
@@ -42,6 +47,33 @@ export default function UploadPage() {
             placeholder="e.g., My UGC Persona"
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
             required
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Face Video</label>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+            className="w-full text-sm text-gray-300 file:mr-4 file:rounded file:border-0 file:bg-gray-800 file:px-3 file:py-2 file:text-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Voice Sample</label>
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={(e) => setVoiceFile(e.target.files?.[0] || null)}
+            className="w-full text-sm text-gray-300 file:mr-4 file:rounded file:border-0 file:bg-gray-800 file:px-3 file:py-2 file:text-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Voice Prompt Text</label>
+          <input
+            type="text"
+            value={voiceText}
+            onChange={(e) => setVoiceText(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
         {error && <p className="text-red-400 text-sm">{error}</p>}

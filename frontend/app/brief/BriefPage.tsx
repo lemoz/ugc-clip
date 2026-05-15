@@ -35,7 +35,19 @@ export function BriefPage() {
         setError("Please select a persona");
         return;
       }
-      const project = await apiClient.createProject(selectedPersona, `Brief: ${productName || "Untitled"}`);
+      const brief = await apiClient.createBrief({
+        template_slug: template,
+        title: `Brief: ${productName || "Untitled"}`,
+        product_name: productName,
+        call_to_action: cta,
+        tone,
+        target_duration: 30,
+      });
+      const project = await apiClient.createProjectFromBrief({
+        persona_id: selectedPersona,
+        brief_id: brief.id,
+        name: brief.title,
+      });
       router.push(`/projects/${project.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project");

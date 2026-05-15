@@ -20,8 +20,10 @@ class VisualAnchorsStage(PipelineStage):
         }
         errors: list[str] = []
 
+        stage_outputs = ctx.data.get("stage_outputs", {})
+        artifact_output = stage_outputs.get("2", {})
         prev_output = ctx.data.get("previous_stage_output", {})
-        shot_plan = prev_output.get("shot_plan", {})
+        shot_plan = prev_output.get("shot_plan") or artifact_output.get("shot_plan", {})
         segments = shot_plan.get("segments", [])
 
         for seg in segments:

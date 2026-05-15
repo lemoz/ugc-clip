@@ -22,8 +22,9 @@ class AssemblyStage(PipelineStage):
         }
         errors: list[str] = []
 
+        stage_outputs = ctx.data.get("stage_outputs", {})
         prev_output = ctx.data.get("previous_stage_output", {})
-        segments = prev_output.get("segments", [])
+        segments = prev_output.get("segments") or stage_outputs.get("5", {}).get("segments", [])
 
         src_paths = [
             seg["lipsync_path"]
@@ -44,7 +45,10 @@ class AssemblyStage(PipelineStage):
         settings = load_settings()
         out_dir = Path(settings.local_asset_dir) / ctx.project_id
         out_dir.mkdir(parents=True, exist_ok=True)
-        output["output_video"] = str(out_dir / "output.mp4")
+        output_path = out_dir / "output.mp4"
+        if src_paths:
+            output_path.write_bytes(b"ugc-clip-fake-video\n" + "\n".join(src_paths).encode())
+        output["output_video"] = str(output_path)
 
         if errors:
             return StageResult.failure(7, errors, output)

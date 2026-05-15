@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlalchemy import select
+
 from backend.config import load_settings
 from backend.models import Brief
 from backend.pipeline.stage import PipelineStage, StageContext, StageResult
@@ -19,12 +21,38 @@ class BriefStage(PipelineStage):
         errors: list[str] = []
 
         template_slug = ctx.data.get("template_slug", "product-review")
+        brief_id = ctx.data.get("brief_id")
         settings = load_settings()
         templates_dir = Path(settings.templates_dir)
 
         template_def = find_template(templates_dir, template_slug)
         if template_def:
             output["template"] = template_def
+
+        if brief_id:
+            result = await ctx.session.execute(
+                select(Brief).where(Brief.id == brief_id, Brief.user_id == ctx.user_id)
+            )
+            brief = result.scalar_one_or_none()
+            if not brief:
+                return StageResult.failure(1, ["Brief not found"], output)
+
+            output["brief_id"] = brief.id
+            output["brief"] = {
+                "id": brief.id,
+                "title": brief.title,
+                "topic": brief.topic,
+                "product_name": brief.product_name,
+                "key_claims": brief.key_claims,
+                "call_to_action": brief.call_to_action,
+                "tone": brief.tone,
+                "target_platform": brief.target_platform,
+                "target_audience": brief.target_audience,
+                "target_duration": brief.target_duration,
+                "custom_notes": brief.custom_notes,
+            }
+            output["template_slug"] = template_slug
+            return StageResult.success(1, output)
 
         brief_data = ctx.data.get("brief", {})
         default_tone = template_def.get("tone", "casual") if template_def else "casual"
@@ -48,6 +76,19 @@ class BriefStage(PipelineStage):
         await ctx.session.commit()
 
         output["brief_id"] = brief.id
+        output["brief"] = {
+            "id": brief.id,
+            "title": brief.title,
+            "topic": brief.topic,
+            "product_name": brief.product_name,
+            "key_claims": brief.key_claims,
+            "call_to_action": brief.call_to_action,
+            "tone": brief.tone,
+            "target_platform": brief.target_platform,
+            "target_audience": brief.target_audience,
+            "target_duration": brief.target_duration,
+            "custom_notes": brief.custom_notes,
+        }
         output["template_slug"] = template_slug
 
         if errors:

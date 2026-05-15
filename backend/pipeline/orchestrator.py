@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.models import Project
+from backend.pipeline.artifacts import save_artifact
 from backend.pipeline.stage import (
     PipelineStage,
     StageContext,
@@ -44,12 +45,17 @@ class PipelineOrchestrator:
         if not project:
             return [StageResult.failure(0, [f"Project {project_id} not found"])]
 
+        initial_data = context_data or {}
         ctx = StageContext(
             session=session,
             project_id=project.id,
             user_id=project.user_id,
             persona_id=project.persona_id,
-            data=context_data or {},
+            data={
+                **initial_data,
+                "stage_outputs": {},
+                "previous_stage_output": {},
+            },
         )
 
         results: list[StageResult] = []
@@ -63,7 +69,7 @@ class PipelineOrchestrator:
             logger.info("Running stage %d: %s", stage_number, stage.stage_name)
 
             await self._update_project_stage(session, project_id, stage_number)
-            ctx.data = {"previous_stage_output": results[-1].output if results else {}}
+            ctx.data["previous_stage_output"] = results[-1].output if results else {}
 
             try:
                 result = await stage.run(ctx)
@@ -72,6 +78,24 @@ class PipelineOrchestrator:
                 result = StageResult.failure(stage_number, [str(e)])
 
             results.append(result)
+            ctx.data["stage_outputs"][str(stage_number)] = result.output
+
+            await save_artifact(
+                session,
+                project_id=project.id,
+                user_id=project.user_id,
+                stage_number=stage_number,
+                artifact_type=f"stage_{stage_number}_output",
+                content={
+                    "stage_number": stage_number,
+                    "stage_name": stage.stage_name,
+                    "status": result.status.name.lower(),
+                    "output": result.output,
+                    "errors": result.errors,
+                    "warnings": result.warnings,
+                },
+                status=result.status.name.lower(),
+            )
 
             if result.status == StageStatus.FAILED:
                 logger.error(
@@ -84,7 +108,8 @@ class PipelineOrchestrator:
 
             logger.info("Stage %d completed: %s", stage_number, result.status.name)
 
-        await self._update_project_status(session, project_id, "complete")
+        final_status = "awaiting_review" if stop_stage >= 9 else "complete"
+        await self._update_project_status(session, project_id, final_status)
         return results
 
     async def _load_project(self, session: AsyncSession, project_id: str) -> Project | None:
