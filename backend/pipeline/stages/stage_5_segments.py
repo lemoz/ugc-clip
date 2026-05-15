@@ -6,9 +6,9 @@ import logging
 from pathlib import Path
 
 from backend.config import load_settings
-from backend.pipeline.lipsync.service import LipsyncService, StubLipsyncService
+from backend.pipeline.lipsync.service import LipsyncService, get_lipsync_service
 from backend.pipeline.stage import PipelineStage, StageContext, StageResult
-from backend.pipeline.tts.service import StubTtsService, TtsService
+from backend.pipeline.tts.service import TtsService, get_tts_service
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ class SegmentGenerationStage(PipelineStage):
         tts_service: TtsService | None = None,
         lipsync_service: LipsyncService | None = None,
     ):
-        self._tts = tts_service or StubTtsService()
-        self._lipsync = lipsync_service or StubLipsyncService()
+        self._tts = tts_service or get_tts_service()
+        self._lipsync = lipsync_service or get_lipsync_service()
 
     async def run(self, ctx: StageContext) -> StageResult:
         output: dict = {"segments": []}

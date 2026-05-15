@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     runcomfy_api_token: str | None = None
     runcomfy_base_url: str = "https://model-api.runcomfy.net/v1"
 
+    tts_provider: str = "stub"
+    lipsync_provider: str = "stub"
+    external_python_bin: str = "python3"
+    govclip_root: str | None = None
+    govclip_tts_script: str | None = None
+    govclip_lipsync_script: str | None = None
+
     gcs_bucket: str = "ugc-clip-temp-files"
     s3_bucket: str = "ugc-clip-uploads"
     aws_access_key_id: str | None = None
